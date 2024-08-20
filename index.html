@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>予約リマインダー & 診療履歴管理</title>
+    <style>
+        /* 簡単なスタイル設定 */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        label { display: block; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
+        button { margin-top: 20px; padding: 10px; width: 100%; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>予約リマインダー & 診療履歴管理</h1>
+
+    </header>
+    <div class="container">
+        <h1>予約リマインダー</h1>
+        <h2>🔳予約状況🔳</h2>
+        
+        <form id="reservationForm">
+            <label for="datetime">日時:</label>
+            <input type="datetime-local" id="datetime" required>
+
+            <label for="hospitalName">病院名:</label>
+
+
+            <label for="doctor">先生:</label>
+            <input type="text" id="doctor" required>
+
+            <label for="department">診療科:</label>
+            <input type="text" id="department" required>
+
+            <label for="medication">お薬:</label>
+            <input type="text" id="medication">
+
+            <label for="stuff">担当スタッフ:</label>
+            <input type="text" id="stuff" required>
+
+            <label for="notes">その他メモ:</label>
+            <textarea id="notes"></textarea>
+
+            <button type="submit">予約を保存</button>
+        </form>
+
+        <h2>🔳予約一覧🔳</h2>
+        <ul id="reservationList"></ul>
+
+        <h1>診療履歴管理</h1>
+        <h2>🔳診療履歴🔳</h2>
+        <form id="historyForm">
+            <label for="historyDate">診療日:</label>
+            <input type="date" id="historyDate" required>
+
+            <label for="historyHospitalName">病院名:</label>
+            <input type="text" id="historyHospitalName" required>
+
+            <label for="historyDoctor">先生:</label>
+            <input type="text" id="historyDoctor" required>
+
+            <label for="historyDepartment">診療科:</label>
+            <input type="text" id="historyDepartment">
+
+            <label for="historyMedication">処方薬:</label>
+            <input type="text" id="historyMedication">
+
+            <label for="historyStuff">担当スタッフ:</label>
+            <input type="text" id="historyStuff" required>
+
+            <label for="historyNotes">診療内容・メモ:</label>
+            <textarea id="historyNotes"></textarea>
+
+            <button type="submit">診療履歴を保存</button>
+        </form>
+
+        <h2>🔳診療履歴一覧🔳</h2>
+        <ul id="historyList"></ul>
+    </div>
+    
+<script>
+$(document).ready(function() {
+    const $form = $('#reservationForm');
+    const $reservationList = $('#reservationList');
+    const $historyForm = $('#historyForm');
+    const $historyList = $('#historyList');
+
+    // ページロード時に予約一覧と診療履歴一覧を表示
+    displayReservations();
+    displayHistory();
+
+    // 予約フォームの送信処理
+    $form.on('submit', function(event) {
+        event.preventDefault();
+
+        const reservation = {
+            datetime: $('#datetime').val(),
+            hospitalName: $('#hospitalName').val(),
+            doctor: $('#doctor').val(),
+            department: $('#department').val(),
+            medication: $('#medication').val(),
+            notes: $('#notes').val()
+        };
+
+        saveReservation(reservation);
+        displayReservations();
+        $form[0].reset();
+    });
+
+    // 診療履歴フォームの送信処理
+    $historyForm.on('submit', function(event) {
+        event.preventDefault();
+
+        const history = {
+            date: $('#historyDate').val(),
+            hospitalName: $('#historyHospitalName').val(),
+            doctor: $('#historyDoctor').val(),
+            department: $('#historyDepartment').val(),
+            medication: $('#historyMedication').val(),
+            notes: $('#historyNotes').val()
+        };
+
+        saveHistory(history);
+        displayHistory();
+        $historyForm[0].reset();
+    });
+
+    // 予約をLocal Storageに保存
+    function saveReservation(reservation) {
+        let reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+        reservations.push(reservation);
+        localStorage.setItem('reservations', JSON.stringify(reservations));
+    }
+
+    // 診療履歴をLocal Storageに保存
+    function saveHistory(history) {
+        let histories = JSON.parse(localStorage.getItem('histories')) || [];
+        histories.push(history);
+        localStorage.setItem('histories', JSON.stringify(histories));
+    }
+
+    // 予約一覧を表示
+    function displayReservations() {
+        $reservationList.empty();
+        let reservations = JSON.parse(localStorage.getItem('reservations')) || [];
+
+        $.each(reservations, function(index, reservation) {
+            const $li = $('<li>').text(`${reservation.datetime} - ${reservation.hospitalName} (${reservation.department}, ${reservation.doctor})`);
+            $reservationList.append($li);
+
+            // リマインダー機能
+            checkReminder(reservation);
+        });
+    }
+
+    // 診療履歴一覧を表示
+    function displayHistory() {
+        $historyList.empty();
+        let histories = JSON.parse(localStorage.getItem('histories')) || [];
+
+        $.each(histories, function(index, history) {
+            const $li = $('<li>').text(`${history.date} - ${history.hospitalName} (${history.department}, ${history.doctor}) - 処方薬: ${history.medication}`);
+            $li.append($('<p>').text(`診療内容: ${history.notes}`));
+            $historyList.append($li);
+        });
+    }
+
+    // リマインダー機能: 現在の時間と予約時間を比較
+    function checkReminder(reservation) {
+        const now = new Date();
+        const reservationTime = new Date(reservation.datetime);
+
+        // 予約時間が近づいたらアラートを表示（例: 24時間前）
+        if (reservationTime > now && reservationTime - now <= 86400000) {
+            alert(`間もなく予約があります: ${reservation.hospitalName} (${reservation.department}, ${reservation.doctor})`);
+        }
+    }
+
+    // 診療科別の医師推奨
+    $('#department').on('change', function() {
+        const selectedDepartment = $(this).val();
+        const histories = JSON.parse(localStorage.getItem('histories')) || [];
+        const relatedDoctors = histories.filter(history => history.department === selectedDepartment).map(history => history.doctor);
+
+        if (relatedDoctors.length > 0) {
+            alert(`この診療科で以前に受診した先生: ${relatedDoctors.join(', ')}`);
+        }
+    });
+});
+   
+</script>
+
+</body>
+</html>
