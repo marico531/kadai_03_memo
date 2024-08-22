@@ -5,96 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>予約リマインダー & 診療履歴管理</title>
+
     <style>
-        /* 簡単なスタイル設定 */
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 600px; margin: auto; }
+
+        /* タブのスタイル */
+        .tabs { display: flex; cursor: pointer; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; text-align: center; background: #f1f1f1; border: 1px solid #ccc; }
+        .tab.active { background: #fff; border-bottom: none; font-weight: bold; }
+        
+        /* コンテンツのスタイル */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         label { display: block; margin-top: 10px; }
         input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; }
         button { margin-top: 20px; padding: 10px; width: 100%; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>予約リマインダー & 診療履歴管理</h1>
-
-    </header>
     <div class="container">
-        <h1>予約リマインダー</h1>
-        <h2>🔳予約状況🔳</h2>
+        <h1>予約リマインダー & 診療履歴管理</h1>
         
-        <form id="reservationForm">
-            <label for="datetime">日時:</label>
-            <input type="datetime-local" id="datetime" required>
+        <!-- タブ -->
+        <div class="tabs">
+            <div class="tab active" data-target="#reservationTab">予約リマインダー</div>
+            <div class="tab" data-target="#historyTab">診療履歴管理</div>
+        </div>
 
-            <label for="hospitalName">病院名:</label>
-            <input type="text" id="hospitalName" required>
+        <!-- タブごとのコンテンツ -->
+        <div id="reservationTab" class="tab-content active">
+            <h2>予約を追加</h2>
+            <form id="reservationForm">
+                <label for="datetime">日時:</label>
+                <input type="datetime-local" id="datetime" required>
 
-            <label for="doctor">先生:</label>
-            <input type="text" id="doctor" required>
+                <label for="hospitalName">病院名:</label>
+                <input type="text" id="hospitalName" required>
 
-            <label for="department">診療科:</label>
-            <input type="text" id="department" required>
+                <label for="doctor">先生:</label>
+                <input type="text" id="doctor" required>
 
-            <label for="medication">お薬:</label>
-            <input type="text" id="medication">
+                <label for="department">診療科:</label>
+                <input type="text" id="department" required>
 
-            <label for="stuff">担当スタッフ:</label>
-            <input type="text" id="stuff" required>
+                <label for="medication">お薬:</label>
+                <input type="text" id="medication">
 
-            <label for="notes">その他メモ:</label>
-            <textarea id="notes"></textarea>
+                <label for="stuff">担当:</label>
+                <input type="text" id="stuff" required>
 
-            <button type="submit">予約を保存</button>
-        </form>
+                <label for="notes">その他メモ:</label>
+                <textarea id="notes"></textarea>
 
-        <h2>🔳予約一覧🔳</h2>
-        <ul id="reservationList"></ul>
+                <button type="submit">予約を保存</button>
+            </form>
 
-        <h1>診療履歴管理</h1>
-        <h2>🔳診療履歴🔳</h2>
-        <form id="historyForm">
-            <label for="historyDate">診療日:</label>
-            <input type="date" id="historyDate" required>
+            <h2>予約一覧</h2>
+            <ul id="reservationList"></ul>
+        </div>
 
-            <label for="historyHospitalName">病院名:</label>
-            <input type="text" id="historyHospitalName" required>
+        <div id="historyTab" class="tab-content">
+            <h2>診療履歴を追加</h2>
+            <form id="historyForm">
+                <label for="historyDate">診療日:</label>
+                <input type="date" id="historyDate" required>
 
-            <label for="historyDoctor">先生:</label>
-            <input type="text" id="historyDoctor" required>
+                <label for="historyHospitalName">病院名:</label>
+                <input type="text" id="historyHospitalName" required>
 
-            <label for="historyDepartment">診療科:</label>
-            <input type="text" id="historyDepartment">
+                <label for="historyDoctor">先生:</label>
+                <input type="text" id="historyDoctor">
 
-            <label for="historyMedication">処方薬:</label>
-            <input type="text" id="historyMedication">
+                <label for="historyDepartment">診療科:</label>
+                <input type="text" id="historyDepartment">
 
-            <label for="historyStuff">担当スタッフ:</label>
-            <input type="text" id="historyStuff" required>
+                <label for="historyMedication">処方薬:</label>
+                <input type="text" id="historyMedication">
 
-            <label for="historyNotes">診療内容・メモ:</label>
-            <textarea id="historyNotes"></textarea>
+                <label for="historyStuff">担当:</label>
+                <input type="text" id="historyStuff">
 
-            <button type="submit">診療履歴を保存</button>
-        </form>
 
-        <h2>🔳診療履歴一覧🔳</h2>
-        <ul id="historyList"></ul>
+                <label for="historyNotes">診療内容・メモ:</label>
+                <textarea id="historyNotes"></textarea>
+
+                <button type="submit">診療履歴を保存</button>
+            </form>
+
+            <h2>診療履歴一覧</h2>
+            <ul id="historyList"></ul>
+        </div>
     </div>
     
 <script>
 $(document).ready(function() {
-    const $form = $('#reservationForm');
-    const $reservationList = $('#reservationList');
+    const $reservationForm = $('#reservationForm');
     const $historyForm = $('#historyForm');
+    const $reservationList = $('#reservationList');
     const $historyList = $('#historyList');
 
     // ページロード時に予約一覧と診療履歴一覧を表示
     displayReservations();
     displayHistory();
 
+    // タブの切り替え処理
+    $('.tab').on('click', function() {
+        $('.tab').removeClass('active');
+        $(this).addClass('active');
+
+        const target = $(this).data('target');
+        $('.tab-content').removeClass('active');
+        $(target).addClass('active');
+    });
+
     // 予約フォームの送信処理
-    $form.on('submit', function(event) {
+    $reservationForm.on('submit', function(event) {
         event.preventDefault();
 
         const reservation = {
@@ -103,12 +130,13 @@ $(document).ready(function() {
             doctor: $('#doctor').val(),
             department: $('#department').val(),
             medication: $('#medication').val(),
+            stuff: $('#stuff'). val(),
             notes: $('#notes').val()
         };
 
         saveReservation(reservation);
         displayReservations();
-        $form[0].reset();
+        $reservationForm[0].reset();
     });
 
     // 診療履歴フォームの送信処理
@@ -121,6 +149,7 @@ $(document).ready(function() {
             doctor: $('#historyDoctor').val(),
             department: $('#historyDepartment').val(),
             medication: $('#historyMedication').val(),
+            stuff: $('##historyStuff').val(),
             notes: $('#historyNotes').val()
         };
 
@@ -174,7 +203,7 @@ $(document).ready(function() {
         const now = new Date();
         const reservationTime = new Date(reservation.datetime);
 
-        // 予約時間が近づいたらアラートを表示（例: 24時間前）
+        // 予約時間が近づいたらアラートを表示（例: 1日前）
         if (reservationTime > now && reservationTime - now <= 86400000) {
             alert(`間もなく予約があります: ${reservation.hospitalName} (${reservation.department}, ${reservation.doctor})`);
         }

@@ -1,0 +1,97 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+}
+
+.tabs {
+    display: flex;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    background: #f1f1f1;
+    border: 1px solid #ccc;
+}
+
+.tab.active {
+    background: #fff;
+    border-bottom: none;
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+}
+
+button {
+    margin-top: 20px;
+    padding: 10px;
+    width: 100%;
+}
+
+/* メディアクエリ: タブレット対応 (画面幅が768px以下の場合) */
+/* @media (max-width: 768px) {
+    .container {
+        max-width: 90%;
+        margin: 10px auto;
+    }
+    
+    .tab {
+        padding: 8px;
+        font-size: 0.9em;
+    }
+    
+    input, select, textarea, button {
+        padding: 6px;
+    }
+} */
+
+/* メディアクエリ: スマートフォン対応 (画面幅が480px以下の場合) */
+@media (max-width: 480px) {
+    .tabs {
+        flex-direction: column;
+    }
+
+    .tab {
+        font-size: 0.8em;
+        padding: 12px;
+    }
+
+    .tab-content.active {
+        margin-top: 20px;
+    }
+    
+    .container {
+        max-width: 95%;
+        margin: 5px auto;
+    }
+    
+    input, select, textarea, button {
+        padding: 5px;
+        font-size: 0.8em;
+    }
+}
